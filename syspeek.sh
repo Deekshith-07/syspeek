@@ -3,7 +3,7 @@
 # Define the file paths for the reports
 TEXT_REPORT="/home/deekshith/Desktop/report.txt"
 CSV_REPORT="/home/deekshith/Desktop/report.csv"
-HTML_REPORT="/home/deekshith/Desktop/report.html"
+HTML_REPORT="/home/$hostname/Desktop/report.html"
 
 # Ensure wmctrl is installed
 if ! command -v wmctrl &> /dev/null
@@ -60,6 +60,30 @@ Y88b  d88P Y88b 888      X88 888       Y8b.     Y8b.     888 "88b
                                                                                                                                       
 EOF
 ) 
+
+# Help message
+display_help() {
+    echo -e ${CYAN}"$ASCII_LOGO"${RESET}
+    echo -e "${GREEN}SysPeek - System Information Tool${RESET}"
+    echo -e "================================="
+    echo -e "${GREEN}Usage:${RESET}"
+    echo -e "  syspeek [OPTION]"
+    echo -e ""
+    echo -e "${GREEN}Options:${RESET}"
+    echo -e "  ${YELLOW}--help${RESET}          Display this help message."
+    echo -e "  ${YELLOW}--version${RESET}       Display the syspeek version."
+    echo -e "  ${YELLOW}--html${RESET}          Generate a system information report in HTML format."
+    echo -e "  ${YELLOW}--csv${RESET}           Generate a system information report in CSV format."
+    echo -e "  ${YELLOW}--txt${RESET}           Generate a system information report in plain text format."
+    echo -e ""
+    echo -e "${GREEN}Examples:${RESET}"
+    echo -e "  ${RED}syspeek${RESET}                 Display system information in the terminal."
+    echo -e "  ${RED}syspeek ${YELLOW}--version${RESET}       Display the syspeek version."
+    echo -e "  ${RED}syspeek ${YELLOW}--html${RESET}          Generate an HTML report."
+    echo -e "  ${RED}syspeek ${YELLOW}--csv${RESET}           Generate a CSV report."
+    echo -e "  ${RED}syspeek ${YELLOW}--txt${RESET}           Generate a plain text report."
+    echo -e ""
+}
 
 # Create the report content
 TEXT_CONTENT=$(cat <<EOF
@@ -279,6 +303,12 @@ case "$1" in
     --html)
         echo "$HTML_CONTENT" > "$HTML_REPORT"
         echo "HTML report generated at $HTML_REPORT"
+        ;;
+    --version)
+        echo "syspeek v0.0.1"
+        ;;
+    --help)
+        display_help
         ;;
     *)
         # Print the information to the terminal
