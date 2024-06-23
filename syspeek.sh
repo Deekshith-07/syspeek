@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Define the file paths for the reports
-TEXT_REPORT="/home/deekshith/Desktop/report.txt"
-CSV_REPORT="/home/deekshith/Desktop/report.csv"
-HTML_REPORT="/home/deekshith/Desktop/report.html"
+TEXT_REPORT="/home/$USER/Desktop/report.txt"
+CSV_REPORT="/home/$USER/Desktop/report.csv"
+HTML_REPORT="/home/$USER/Desktop/report.html"
 
 # Ensure wmctrl is installed
 if ! command -v wmctrl &> /dev/null
