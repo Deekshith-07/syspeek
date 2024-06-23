@@ -43,6 +43,7 @@ MAGENTA="\033[0;35m"
 CYAN="\033[0;36m"
 WHITE="\033[0;37m"
 RESET="\033[0m"
+BOLD="\033[1m"
 
 # Create ASCII Art Logo
 ASCII_LOGO=$(cat <<'EOF'
@@ -65,7 +66,7 @@ EOF
 
 # Help message
 display_help() {
-    echo -e ${CYAN}"$ASCII_LOGO"${RESET}
+    echo -e ${CYAN}${BOLD}"$ASCII_LOGO"${RESET}
     echo -e "${GREEN}SysPeek - System Information Tool${RESET}"
     echo -e "================================="
     echo -e "${GREEN}Usage:${RESET}"
@@ -89,29 +90,29 @@ display_help() {
 
 # Create the report content
 TEXT_CONTENT=$(cat <<EOF
-${CYAN}$ASCII_LOGO${RESET}
+${CYAN}${BOLD}$ASCII_LOGO${RESET}
 
 ${GREEN}System Information Report${RESET}
 =========================
-${RED}Host:${RESET} $HOSTNAME
-${RED}User:${RESET} $USER
-${RED}OS:${RESET} $OS
-${RED}Kernel:${RESET} $KERNEL
-${RED}Uptime:${RESET} $UPTIME
-${RED}Shell:${RESET} $SHELL
-${RED}CPU:${RESET} $CPU
-${RED}GPU:${RESET} $GPU
-${RED}Memory:${RESET} $MEMORY_USED / $MEMORY_TOTAL
-${RED}Packages:${RESET} $PACKAGES
-${RED}Broken Packages:${RESET} $BROKEN_PACKAGES
-${RED}Upgradable Packages:${RESET} $UPGRADABLE_PACKAGES
-${RED}Resolution:${RESET} $RESOLUTION
-${RED}DE:${RESET} $DE
-${RED}WM:${RESET} $WM
-${RED}WM Theme:${RESET} $WM_THEME
-${RED}GTK Theme:${RESET} $GTK_THEME
-${RED}Icons:${RESET} $ICONS
-${RED}Terminal:${RESET} $TERMINAL
+${RED}${BOLD}Host:${RESET} $HOSTNAME
+${RED}${BOLD}User:${RESET} $USER
+${RED}${BOLD}OS:${RESET} $OS
+${RED}${BOLD}Kernel:${RESET} $KERNEL
+${RED}${BOLD}Uptime:${RESET} $UPTIME
+${RED}${BOLD}Shell:${RESET} $SHELL
+${RED}${BOLD}CPU:${RESET} $CPU
+${RED}${BOLD}GPU:${RESET} $GPU
+${RED}${BOLD}Memory:${RESET} $MEMORY_USED / $MEMORY_TOTAL
+${RED}${BOLD}Packages:${RESET} $PACKAGES
+${RED}${BOLD}Broken Packages:${RESET} $BROKEN_PACKAGES
+${RED}${BOLD}Upgradable Packages:${RESET} $UPGRADABLE_PACKAGES
+${RED}${BOLD}Resolution:${RESET} $RESOLUTION
+${RED}${BOLD}DE:${RESET} $DE
+${RED}${BOLD}WM:${RESET} $WM
+${RED}${BOLD}WM Theme:${RESET} $WM_THEME
+${RED}${BOLD}GTK Theme:${RESET} $GTK_THEME
+${RED}${BOLD}Icons:${RESET} $ICONS
+${RED}${BOLD}Terminal:${RESET} $TERMINAL
 EOF
 )
 
