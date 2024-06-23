@@ -3,7 +3,7 @@
 # Define the file paths for the reports
 TEXT_REPORT="/home/deekshith/Desktop/report.txt"
 CSV_REPORT="/home/deekshith/Desktop/report.csv"
-HTML_REPORT="/home/$hostname/Desktop/report.html"
+HTML_REPORT="/home/deekshith/Desktop/report.html"
 
 # Ensure wmctrl is installed
 if ! command -v wmctrl &> /dev/null
@@ -24,6 +24,8 @@ GPU=$(lspci | grep -E "VGA|3D" | awk -F: '{print $3}' | sed 's/^[ \t]*//')
 MEMORY_TOTAL=$(free -h | grep Mem | awk '{print $2}')
 MEMORY_USED=$(free -h | grep Mem | awk '{print $3}')
 PACKAGES=$(dpkg --list | wc -l)
+BROKEN_PACKAGES=$(dpkg --audit | wc -l)
+UPGRADABLE_PACKAGES=$(apt list --upgradable 2>/dev/null | grep -c upgradable)
 RESOLUTION=$(xdpyinfo | grep dimensions | awk '{print $2}')
 DE=$(echo $XDG_CURRENT_DESKTOP)
 WM=$(wmctrl -m | grep Name | awk '{print $2}')
@@ -101,6 +103,8 @@ ${RED}CPU:${RESET} $CPU
 ${RED}GPU:${RESET} $GPU
 ${RED}Memory:${RESET} $MEMORY_USED / $MEMORY_TOTAL
 ${RED}Packages:${RESET} $PACKAGES
+${RED}Broken Packages:${RESET} $BROKEN_PACKAGES
+${RED}Upgradable Packages:${RESET} $UPGRADABLE_PACKAGES
 ${RED}Resolution:${RESET} $RESOLUTION
 ${RED}DE:${RESET} $DE
 ${RED}WM:${RESET} $WM
@@ -251,6 +255,14 @@ td{
           <td>$PACKAGES</td>
         </tr>
         <tr>
+          <th>Broken Packages</th>
+          <td>$BROKEN_PACKAGES</td>
+        </tr>
+        <tr>
+          <th>Upgradable Packages</th>
+          <td>$UPGRADABLE_PACKAGES</td>
+        </tr>
+        <tr>
           <th>Resolution</th>
           <td>$RESOLUTION</td>
         </tr>
@@ -310,8 +322,11 @@ case "$1" in
     --help)
         display_help
         ;;
-    *)
-        # Print the information to the terminal
+    "")
         echo -e "$TEXT_CONTENT"
+        ;;
+    *)
+        echo -e "${RED}Error: Invalid option${RESET}\nPlease run 'syspeek --help' to check the available options."
+        exit 1
         ;;
 esac
