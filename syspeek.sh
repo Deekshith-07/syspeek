@@ -6,33 +6,135 @@ CSV_REPORT="/home/$USER/Desktop/report.csv"
 HTML_REPORT="/home/$USER/Desktop/report.html"
 
 # Ensure wmctrl is installed
-if ! command -v wmctrl &> /dev/null
-then
+if ! command -v wmctrl &> /dev/null; then
     echo -e "\033[0;31mwmctrl could not be found, please install it using: sudo apt install wmctrl\033[0m"
     exit
 fi
 
+if ! command -v acpi &> /dev/null; then
+    echo -e "\033[0;31macpi could not be found, please install it using: sudo apt install acpi\033[0m"
+    exit
+fi
+
+if ! command -v sensors &> /dev/null; then
+    echo -e "\033[0;31msensors could not be found, please install it using: sudo apt install lm-sensors\033[0m"
+    exit
+fi
+
 # Get system information
+# Fetch HOSTNAME, replace empty with "N/A"
 HOSTNAME=$(hostname)
+HOSTNAME=${HOSTNAME:-"N/A"}
+
+# Fetch USER, replace empty with "N/A"
 USER=$(whoami)
+USER=${USER:-"N/A"}
+
+# Fetch OS, replace empty with "N/A"
 OS=$(lsb_release -d | awk -F"\t" '{print $2}')
+OS=${OS:-"N/A"}
+
+# Fetch KERNEL, replace empty with "N/A"
 KERNEL=$(uname -r)
+KERNEL=${KERNEL:-"N/A"}
+
+# Fetch UPTIME, replace empty with "N/A"
 UPTIME=$(uptime -p)
-SHELL=$(echo $SHELL)
+UPTIME=${UPTIME:-"N/A"}
+
+# Fetch SHELL, replace empty with "N/A"
+shell=$(basename "$SHELL")
+shell_version=$("$SHELL" --version 2>&1 | head -n 1)
+
+# Determine the appropriate command to get shell version based on the shell type
+if [[ "$shell" == "bash" ]]; then
+    shell_version=$("$SHELL" --version | head -n 1)
+elif [[ "$shell" == "zsh" ]]; then
+    shell_version=$("$SHELL" --version | head -n 1)
+elif [[ "$shell" == "fish" ]]; then
+    shell_version=$("$SHELL" --version | head -n 1)
+else
+    shell_version=$("$SHELL" --version 2>&1 | head -n 1)
+fi
+
+# If version information is not found, fallback to shell path
+if [ -z "$shell_version" ]; then
+    shell_version=$SHELL
+fi
+
+SHELL=${shell_version:-"N/A"}
+
+
+# Fetch CPU, replace empty with "N/A"
 CPU=$(lscpu | grep 'Model name' | awk -F: '{print $2}' | sed 's/^[ \t]*//')
+CPU=${CPU:-"N/A"}
+
+# Fetch GPU, replace empty with "N/A"
 GPU=$(lspci | grep -E "VGA|3D" | awk -F: '{print $3}' | sed 's/^[ \t]*//')
+GPU=${GPU:-"N/A"}
+
+# Fetch MEMORY_TOTAL, replace empty with "N/A"
 MEMORY_TOTAL=$(free -h | grep Mem | awk '{print $2}')
+MEMORY_TOTAL=${MEMORY_TOTAL:-"N/A"}
+
+# Fetch MEMORY_USED, replace empty with "N/A"
 MEMORY_USED=$(free -h | grep Mem | awk '{print $3}')
+MEMORY_USED=${MEMORY_USED:-"N/A"}
+
+# Fetch PACKAGES, replace empty with "N/A"
 PACKAGES=$(dpkg --list | wc -l)
+PACKAGES=${PACKAGES:-"N/A"}
+
+# Fetch BROKEN_PACKAGES, replace empty with "N/A"
 BROKEN_PACKAGES=$(dpkg --audit | wc -l)
+BROKEN_PACKAGES=${BROKEN_PACKAGES:-"N/A"}
+
+# Fetch UPGRADABLE_PACKAGES, replace empty with "N/A"
 UPGRADABLE_PACKAGES=$(apt list --upgradable 2>/dev/null | grep -c upgradable)
+UPGRADABLE_PACKAGES=${UPGRADABLE_PACKAGES:-"N/A"}
+
+# Fetch RESOLUTION, replace empty with "N/A"
 RESOLUTION=$(xdpyinfo | grep dimensions | awk '{print $2}')
-DE=$(echo $XDG_CURRENT_DESKTOP)
+RESOLUTION=${RESOLUTION:-"N/A"}
+
+# Fetch DE, replace empty with "N/A"
+# DE=$(echo $XDG_CURRENT_DESKTOP)
+DE=$(gnome-shell --version | awk '{print $1, $3}') 
+DE=${DE:-"N/A"}
+
+# Fetch WM, replace empty with "N/A"
 WM=$(wmctrl -m | grep Name | awk '{print $2}')
+WM=${WM:-"N/A"}
+
+# Fetch WM_THEME, replace empty with "N/A"
 WM_THEME=$(gsettings get org.gnome.desktop.wm.preferences theme | tr -d "'")
+WM_THEME=${WM_THEME:-"N/A"}
+
+# Fetch GTK_THEME, replace empty with "N/A"
 GTK_THEME=$(gsettings get org.gnome.desktop.interface gtk-theme | tr -d "'")
+GTK_THEME=${GTK_THEME:-"N/A"}
+
+# Fetch ICONS, replace empty with "N/A"
 ICONS=$(gsettings get org.gnome.desktop.interface icon-theme | tr -d "'")
+ICONS=${ICONS:-"N/A"}
+
+# Fetch TERMINAL, replace empty with "N/A"
 TERMINAL=$(echo $TERM)
+TERMINAL=${TERMINAL:-"N/A"}
+
+
+# Get battery information
+BATTERY_STATUS=$(acpi -b | awk '{print $3, $4, $5, $6, $7}')
+BATTERY_STATUS=${BATTERY_STATUS:-"N/A"}
+
+# Fetch CPU temperature if available
+CPU_TEMP=$(sensors | grep -E 'Tctl|Core 0' | awk '{print $2}')
+CPU_TEMP=${CPU_TEMP:-"N/A"}
+
+# Fetch GPU temperature if available
+GPU_TEMP=$(sensors | grep -E 'edge' | awk '{print $2}')
+GPU_TEMP=${GPU_TEMP:-"N/A"}
+
 
 # ANSI color codes
 RED="\033[0;31m"
@@ -47,20 +149,12 @@ BOLD="\033[1m"
 
 # Create ASCII Art Logo
 ASCII_LOGO=$(cat <<'EOF'
+    ___               ___               _   
+   / __|  _  _   ___ | _ \  ___   ___  | |__
+   \__ \ | || | (_-< |  _/ / -_) / -_) | / /
+   |___/  \_, | /__/ |_|   \___| \___| |_\_\
+          |__/                              
 
-
- .d8888b.                    8888888b.                   888      
-d88P  Y88b                   888   Y88b                  888      
-Y88b.                        888    888                  888      
- "Y888b.   888  888 .d8888b  888   d88P .d88b.   .d88b.  888  888 
-    "Y88b. 888  888 88K      8888888P" d8P  Y8b d8P  Y8b 888 .88P 
-      "888 888  888 "Y8888b. 888       88888888 88888888 888888K  
-Y88b  d88P Y88b 888      X88 888       Y8b.     Y8b.     888 "88b 
- "Y8888P"   "Y88888  88888P' 888        "Y8888   "Y8888  888  888 
-                888                                               
-           Y8b d88P                                               
-            "Y88P"                                                
-                                                                                                                                      
 EOF
 ) 
 
@@ -113,195 +207,95 @@ ${RED}${BOLD}WM Theme:${RESET} $WM_THEME
 ${RED}${BOLD}GTK Theme:${RESET} $GTK_THEME
 ${RED}${BOLD}Icons:${RESET} $ICONS
 ${RED}${BOLD}Terminal:${RESET} $TERMINAL
+${RED}${BOLD}Battery:${RESET} $BATTERY_STATUS
+${RED}${BOLD}CPU Temp:${RESET} $CPU_TEMP
+${RED}${BOLD}GPU Temp:${RESET} $GPU_TEMP
+EOF
+)
+BATTERY_STATUS_CLEAN=$(echo "$BATTERY_STATUS" | tr -d ',')
+UPTIME_CLEAN=$(echo "$UPTIME" | tr -d ',')
+GPU_CLEAN=$(echo "$GPU" | tr -d ',')
+
+CSV_CONTENT=$(cat <<EOF
+Host,User,OS,Kernel,Uptime,Shell,CPU,GPU,Memory,Packages,Resolution,DE,WM,WM Theme,GTK Theme,Icons,Terminal,Battery, CPU Temp,GPU Temp
+$HOSTNAME,$USER,$OS,$KERNEL,$UPTIME_CLEAN,$SHELL,$CPU,$GPU_CLEAN,$MEMORY_USED / $MEMORY_TOTAL,$PACKAGES,$RESOLUTION,$DE,$WM,$WM_THEME,$GTK_THEME,$ICONS,$TERMINAL,$BATTERY_STATUS_CLEAN,$CPU_TEMP,$GPU_TEMP
 EOF
 )
 
-CSV_CONTENT=$(cat <<EOF
-Host,User,OS,Kernel,Uptime,Shell,CPU,GPU,Memory,Packages,Resolution,DE,WM,WM Theme,GTK Theme,Icons,Terminal
-$HOSTNAME,$USER,$OS,$KERNEL,$UPTIME,$SHELL,$CPU,$GPU,$MEMORY_USED / $MEMORY_TOTAL,$PACKAGES,$RESOLUTION,$DE,$WM,$WM_THEME,$GTK_THEME,$ICONS,$TERMINAL
-EOF
-)
 
 HTML_CONTENT=$(cat <<EOF
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>System Information Report</title>
-<style>
-body{
-  background: -webkit-linear-gradient(left, #25c481, #25b7c4);
-  background: linear-gradient(to right, #25c481, #25b7c4);
-  font-family: 'Roboto', sans-serif;
-}
-section{
-  margin: 50px;
-}
-h1{
-  font-size: 30px;
-  color: #fff;
-  text-transform: uppercase;
-  font-weight: 300;
-  text-align: center;
-  margin-bottom: 15px;
-}
-table{
-  width:100%;
-  table-layout: fixed;
-}
-.tbl-header{
-  background-color: rgba(255,255,255,0.3);
- }
-.tbl-content{
-  height:300px;
-  overflow-x:auto;
-  margin-top: 0px;
-  border: 1px solid rgba(255,255,255,0.3);
-}
-th, td{
-  padding: 20px 15px;
-  text-align: left;
-  font-weight: 500;
-  font-size: 12px;
-  color: #fff;
-  text-transform: uppercase;
-  vertical-align: top;
-}
-th{
-  background-color: rgba(255,255,255,0.3);
-}
-td{
-  border-bottom: solid 1px rgba(255,255,255,0.1);
-}
-.made-with-love {
-  margin-top: 40px;
-  padding: 10px;
-  clear: left;
-  text-align: center;
-  font-size: 10px;
-  font-family: arial;
-  color: #fff;
-}
-.made-with-love i {
-  font-style: normal;
-  color: #F50057;
-  font-size: 14px;
-  position: relative;
-  top: 2px;
-}
-.made-with-love a {
-  color: #fff;
-  text-decoration: none;
-}
-.made-with-love a:hover {
-  text-decoration: underline;
-}
-::-webkit-scrollbar {
-    width: 6px;
-} 
-::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-} 
-::-webkit-scrollbar-thumb {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-}
-
-</style>
+    <title>System Information Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
-<section>
-  <h1>System Information Report</h1>
-  <div class="tbl-content">
-    <table cellpadding="0" cellspacing="0" border="0">
-      <tbody>
-        <tr>
-          <th>Host</th>
-          <td>$HOSTNAME</td>
-        </tr>
-        <tr>
-          <th>User</th>
-          <td>$USER</td>
-        </tr>
-        <tr>
-          <th>OS</th>
-          <td>$OS</td>
-        </tr>
-        <tr>
-          <th>Kernel</th>
-          <td>$KERNEL</td>
-        </tr>
-        <tr>
-          <th>Uptime</th>
-          <td>$UPTIME</td>
-        </tr>
-        <tr>
-          <th>Shell</th>
-          <td>$SHELL</td>
-        </tr>
-        <tr>
-          <th>CPU</th>
-          <td>$CPU</td>
-        </tr>
-        <tr>
-          <th>GPU</th>
-          <td>$GPU</td>
-        </tr>
-        <tr>
-          <th>Memory</th>
-          <td>$MEMORY_USED / $MEMORY_TOTAL</td>
-        </tr>
-        <tr>
-          <th>Packages</th>
-          <td>$PACKAGES</td>
-        </tr>
-        <tr>
-          <th>Broken Packages</th>
-          <td>$BROKEN_PACKAGES</td>
-        </tr>
-        <tr>
-          <th>Upgradable Packages</th>
-          <td>$UPGRADABLE_PACKAGES</td>
-        </tr>
-        <tr>
-          <th>Resolution</th>
-          <td>$RESOLUTION</td>
-        </tr>
-        <tr>
-          <th>DE</th>
-          <td>$DE</td>
-        </tr>
-        <tr>
-          <th>WM</th>
-          <td>$WM</td>
-        </tr>
-        <tr>
-          <th>WM Theme</th>
-          <td>$WM_THEME</td>
-        </tr>
-        <tr>
-          <th>GTK Theme</th>
-          <td>$GTK_THEME</td>
-        </tr>
-        <tr>
-          <th>Icons</th>
-          <td>$ICONS</td>
-        </tr>
-        <tr>
-          <th>Terminal</th>
-          <td>$TERMINAL</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-<div class="made-with-love">
-  Made with <i>♥</i> by <a target="_blank" href="https://codepen.io/nikhil8krishnan">Nikhil Krishnan</a>
-</div>
+    <div class="container">
+        <h1>System Information Report</h1>
+        <table>
+            <tr><th>Category</th><th>Details</th></tr>
+            <tr><td>Host</td><td>$HOSTNAME</td></tr>
+            <tr><td>User</td><td>$USER</td></tr>
+            <tr><td>OS</td><td>$OS</td></tr>
+            <tr><td>Kernel</td><td>$KERNEL</td></tr>
+            <tr><td>Uptime</td><td>$UPTIME</td></tr>
+            <tr><td>Shell</td><td>$SHELL</td></tr>
+            <tr><td>CPU</td><td>$CPU</td></tr>
+            <tr><td>GPU</td><td>$GPU</td></tr>
+            <tr><td>Memory</td><td>$MEMORY_USED / $MEMORY_TOTAL</td></tr>
+            <tr><td>Packages</td><td>$PACKAGES</td></tr>
+            <tr><td>Broken Packages</td><td>$BROKEN_PACKAGES</td></tr>
+            <tr><td>Upgradable Packages</td><td>$UPGRADABLE_PACKAGES</td></tr>
+            <tr><td>Resolution</td><td>$RESOLUTION</td></tr>
+            <tr><td>DE</td><td>$DE</td></tr>
+            <tr><td>WM</td><td>$WM</td></tr>
+            <tr><td>WM Theme</td><td>$WM_THEME</td></tr>
+            <tr><td>GTK Theme</td><td>$GTK_THEME</td></tr>
+            <tr><td>Icons</td><td>$ICONS</td></tr>
+            <tr><td>Terminal</td><td>$TERMINAL</td></tr>
+            <tr><td>WiFi</td><td>$WIFI_STATUS</td></tr>
+            <tr><td>IP Address</td><td>$IP_ADDRESS</td></tr>
+            <tr><td>Battery</td><td>$BATTERY_STATUS</td></tr>
+            <tr><td>CPU Temp</td><td>$CPU_TEMP</td></tr>
+            <tr><td>GPU Temp</td><td>$GPU_TEMP</td></tr>
+        </table>
+    </div>
 </body>
 </html>
 EOF
 )
+
+
 
 # Check the command-line argument and generate the appropriate report
 case "$1" in
